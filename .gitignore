@@ -1,0 +1,30 @@
+# Build output (C)
+*.exe
+*.o
+*.obj
+*.out
+
+# Java
+*.class
+out/
+bin/
+target/
+build/
+*.iml
+# note: NOT ignoring *.jar on purpose - the Postgres JDBC driver gets committed
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
