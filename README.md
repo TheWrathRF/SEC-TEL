@@ -1,23 +1,28 @@
 # SEC-TEL
 
-Internship project - secure telemetry & electronic warfare simulation.
+Secure Telemetry & Electronic Warfare Simulation.
 
-The idea: a UAV simulator (C) produces flight telemetry, encrypts it and sends it
-over UDP while hopping between ports. A Java ground station receives, validates and
-stores the data in PostgreSQL, a Python "jammer" tries to corrupt the link, and
-Grafana shows everything on a dashboard.
+A UAV simulator written in C produces flight telemetry, encrypts it with AES-128,
+appends a CRC-32 and transmits it over UDP using a port-hopping scheme. A Java ground
+station receives, validates, decrypts and stores the data in PostgreSQL. A Python
+module simulates a jammer that attempts to corrupt the data link, and Grafana
+visualizes the live telemetry and any detected attacks.
 
 ## uav-sim (C)
-For now this just generates dummy flight data (altitude, speed, position, battery)
-and prints one sample per second. Encryption, CRC and UDP come in the next days.
+
+Generates flight telemetry - timestamp, latitude, longitude, altitude, speed and
+battery level - and outputs one sample per second.
 
 ### Build & run
+
 ```
 cd uav-sim
 make
 ./uav-sim.exe
 ```
-or without make:
+
+Without make:
+
 ```
 gcc -Wall main.c -o uav-sim.exe
 ```
