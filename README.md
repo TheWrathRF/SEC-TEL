@@ -11,7 +11,8 @@ visualizes the live telemetry and any detected attacks.
 ## uav-sim (C)
 
 Generates flight telemetry - timestamp, latitude, longitude, altitude, speed and
-battery level - and outputs one sample per second.
+battery level - and sends it as a UDP packet to the ground station once per second.
+Default destination is 127.0.0.1:5000.
 
 ### Build & run
 
@@ -24,5 +25,5 @@ make
 Without make:
 
 ```
-gcc -Wall main.c -o uav-sim.exe
+gcc -Wall main.c -o uav-sim.exe -lws2_32
 ```

@@ -1,10 +1,17 @@
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <windows.h>
+
+// ground station address + port
+#define GS_ADDR "127.0.0.1"
+#define GS_PORT 5000
 
 // One telemetry sample from the UAV. Kept simple for now - this is the data
 // we'll later encrypt and push out over UDP.
+#pragma pack(push, 1)
 struct telemetry {
     long long timestamp;   // unix time, seconds
     double    latitude;
@@ -13,6 +20,7 @@ struct telemetry {
     float     speed;       // m/s
     float     battery;     // percent, 0-100
 };
+#pragma pack(pop)
 
 // small random offset in [-scale, scale], used to make the data less robotic
 static double jitter(double scale) {
@@ -46,6 +54,24 @@ static void step(struct telemetry *t) {
 }
 
 int main(void) {
+    WSADATA wsa;
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+        printf("WSAStartup failed: %d\n", WSAGetLastError());
+        return 1;
+    }
+
+    SOCKET sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (sock == INVALID_SOCKET) {
+        printf("socket failed: %d\n", WSAGetLastError());
+        WSACleanup();
+        return 1;
+    }
+
+    struct sockaddr_in dest;
+    dest.sin_family = AF_INET;
+    dest.sin_port = htons(GS_PORT);
+    dest.sin_addr.s_addr = inet_addr(GS_ADDR);
+
     srand((unsigned)time(NULL));
 
     struct telemetry t;
@@ -56,17 +82,25 @@ int main(void) {
     t.speed     = 0.0f;
     t.battery   = 100.0f;
 
-    printf("UAV simulator started, generating telemetry...\n");
+    printf("UAV simulator started, sending telemetry to %s:%d\n", GS_ADDR, GS_PORT);
 
     while (1) {
-        printf("[%lld] lat=%.5f lon=%.5f alt=%.1fm spd=%.1fm/s batt=%.1f%%\n",
-               t.timestamp, t.latitude, t.longitude,
-               t.altitude, t.speed, t.battery);
+        int n = sendto(sock, (char *)&t, sizeof(t), 0,
+                       (struct sockaddr *)&dest, sizeof(dest));
+        if (n == SOCKET_ERROR) {
+            printf("sendto failed: %d\n", WSAGetLastError());
+        } else {
+            printf("[%lld] lat=%.5f lon=%.5f alt=%.1fm spd=%.1fm/s batt=%.1f%% -> %d bytes\n",
+                   t.timestamp, t.latitude, t.longitude,
+                   t.altitude, t.speed, t.battery, n);
+        }
         fflush(stdout);
 
         step(&t);
         Sleep(1000);   // 1 Hz telemetry
     }
 
+    closesocket(sock);
+    WSACleanup();
     return 0;
 }
