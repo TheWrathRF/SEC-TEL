@@ -4,23 +4,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "telemetry.h"
 
 // ground station address + port
 #define GS_ADDR "127.0.0.1"
 #define GS_PORT 5000
-
-// One telemetry sample from the UAV. Kept simple for now - this is the data
-// we'll later encrypt and push out over UDP.
-#pragma pack(push, 1)
-struct telemetry {
-    long long timestamp;   // unix time, seconds
-    double    latitude;
-    double    longitude;
-    float     altitude;    // meters
-    float     speed;       // m/s
-    float     battery;     // percent, 0-100
-};
-#pragma pack(pop)
 
 // small random offset in [-scale, scale], used to make the data less robotic
 static double jitter(double scale) {
@@ -84,8 +72,11 @@ int main(void) {
 
     printf("UAV simulator started, sending telemetry to %s:%d\n", GS_ADDR, GS_PORT);
 
+    unsigned char packet[PACKET_LEN];
+
     while (1) {
-        int n = sendto(sock, (char *)&t, sizeof(t), 0,
+        int len = build_packet(&t, packet);
+        int n = sendto(sock, (char *)packet, len, 0,
                        (struct sockaddr *)&dest, sizeof(dest));
         if (n == SOCKET_ERROR) {
             printf("sendto failed: %d\n", WSAGetLastError());
