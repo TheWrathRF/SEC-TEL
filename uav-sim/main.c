@@ -5,10 +5,10 @@
 #include <stdlib.h>
 #include <time.h>
 #include "telemetry.h"
+#include "ports.h"
 
-// ground station address + port
+// ground station address (the port changes by hopping, see ports.h)
 #define GS_ADDR "127.0.0.1"
-#define GS_PORT 5000
 
 // small random offset in [-scale, scale], used to make the data less robotic
 static double jitter(double scale) {
@@ -57,8 +57,8 @@ int main(void) {
 
     struct sockaddr_in dest;
     dest.sin_family = AF_INET;
-    dest.sin_port = htons(GS_PORT);
     dest.sin_addr.s_addr = inet_addr(GS_ADDR);
+    // sin_port is set in the loop, it changes as the port hops
 
     srand((unsigned)time(NULL));
 
@@ -70,11 +70,21 @@ int main(void) {
     t.speed     = 0.0f;
     t.battery   = 100.0f;
 
-    printf("UAV simulator started, sending telemetry to %s:%d\n", GS_ADDR, GS_PORT);
+    printf("UAV simulator started, sending to %s, port hops %d-%d every %ds\n",
+           GS_ADDR, PORT_BASE, PORT_BASE + PORT_SPAN - 1, HOP_SECONDS);
 
     unsigned char packet[PACKET_LEN];
+    int cur_port = 0;
 
     while (1) {
+        long long slot = (long long)time(NULL) / HOP_SECONDS;
+        int port = hop_port(slot);
+        if (port != cur_port) {
+            cur_port = port;
+            dest.sin_port = htons((unsigned short)port);
+            printf("== hop -> port %d ==\n", port);
+        }
+
         int len = build_packet(&t, packet);
         int n = sendto(sock, (char *)packet, len, 0,
                        (struct sockaddr *)&dest, sizeof(dest));

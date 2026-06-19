@@ -12,7 +12,9 @@ visualizes the live telemetry and any detected attacks.
 
 Generates flight telemetry - timestamp, latitude, longitude, altitude, speed and
 battery level - encrypts it with AES-128, appends a CRC-32, and sends the packet over
-UDP to the ground station once per second. Default destination is 127.0.0.1:5000.
+UDP to the ground station once per second. The destination port hops between 5000 and
+5100 every 5 seconds (an LCG keyed on the current time slot, so the receiver can stay
+in sync). Destination host is 127.0.0.1.
 
 AES uses the vendored tiny-AES-c library (https://github.com/kokke/tiny-AES-c).
 
