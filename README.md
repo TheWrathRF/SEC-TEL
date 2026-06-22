@@ -29,5 +29,33 @@ make
 Without make:
 
 ```
-gcc -Wall main.c packet.c crc32.c aes.c -o uav-sim.exe -lws2_32
+gcc -Wall main.c packet.c crc32.c ports.c aes.c -o uav-sim.exe -lws2_32
+```
+
+## Database
+
+The received data is stored in PostgreSQL. `db/schema.sql` creates two tables in a
+database named `sectel_db`:
+
+- `clean_telemetry` - valid, decrypted flight data
+- `attack_logs` - packets that failed validation (corrupted / jammed)
+
+Setup (default credentials are postgres / postgres):
+
+```
+psql -U postgres -c "CREATE DATABASE sectel_db;"
+psql -U postgres -d sectel_db -f db/schema.sql
+```
+
+## ground-station (Java)
+
+Receives the UAV packets, validates and decrypts them, and stores the result in
+PostgreSQL over JDBC. The driver jar is in `ground-station/lib`.
+
+### Build & run
+
+```
+cd ground-station
+javac -cp "lib/*" -d out src/*.java
+java -cp "out;lib/*" Main
 ```
