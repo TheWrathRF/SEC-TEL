@@ -49,8 +49,9 @@ psql -U postgres -d sectel_db -f db/schema.sql
 
 ## ground-station (Java)
 
-Receives the UAV packets, validates and decrypts them, and stores the result in
-PostgreSQL over JDBC. The driver jar is in `ground-station/lib`.
+Follows the same port-hopping schedule as the sender, receives the UAV packets and
+validates each one's CRC-32. Corrupted or jammed packets are recorded in the
+`attack_logs` table. Uses plain JDBC; the driver jar is in `ground-station/lib`.
 
 ### Build & run
 
