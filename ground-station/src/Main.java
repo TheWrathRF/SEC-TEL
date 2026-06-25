@@ -74,7 +74,25 @@ public class Main {
             logAttack(db, from, pkt.getPort(), len, "crc mismatch");
             System.out.println("CRC FAIL (" + len + " bytes from " + from + ") -> logged");
         } else {
-            System.out.println("OK packet, " + len + " bytes, crc ok");
+            byte[] plain = Crypto.decrypt(data, payloadLen);
+            Telemetry t = Telemetry.parse(plain);
+            saveTelemetry(db, t);
+            System.out.printf("OK  ts=%d alt=%.1f spd=%.1f batt=%.1f -> stored%n",
+                              t.ts, t.altitude, t.speed, t.battery);
+        }
+    }
+
+    static void saveTelemetry(Connection db, Telemetry t) throws Exception {
+        String sql = "INSERT INTO clean_telemetry (ts, latitude, longitude, altitude, speed, battery) "
+                   + "VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = db.prepareStatement(sql)) {
+            ps.setLong(1, t.ts);
+            ps.setDouble(2, t.latitude);
+            ps.setDouble(3, t.longitude);
+            ps.setFloat(4, t.altitude);
+            ps.setFloat(5, t.speed);
+            ps.setFloat(6, t.battery);
+            ps.executeUpdate();
         }
     }
 

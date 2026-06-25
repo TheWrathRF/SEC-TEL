@@ -49,9 +49,10 @@ psql -U postgres -d sectel_db -f db/schema.sql
 
 ## ground-station (Java)
 
-Follows the same port-hopping schedule as the sender, receives the UAV packets and
-validates each one's CRC-32. Corrupted or jammed packets are recorded in the
-`attack_logs` table. Uses plain JDBC; the driver jar is in `ground-station/lib`.
+Follows the same port-hopping schedule as the sender and receives the UAV packets.
+Each packet's CRC-32 is checked: valid packets are decrypted (AES-128) and stored in
+`clean_telemetry`, while corrupted or jammed packets are recorded in `attack_logs`.
+Uses plain JDBC; the driver jar is in `ground-station/lib`.
 
 ### Build & run
 
