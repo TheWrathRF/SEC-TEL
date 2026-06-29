@@ -61,3 +61,15 @@ cd ground-station
 javac -cp "lib/*" -d out src/*.java
 java -cp "out;lib/*" Main
 ```
+
+## jammer (Python)
+
+Simulates an electronic-warfare attacker on the data link. It targets one hardcoded
+UDP port; because the real link hops across 5000-5100, a fixed-port attacker only
+lands when a hop happens to coincide with it.
+
+- `python jammer.py sniff [port]` - listen on the port and print intercepted packets
+- `python jammer.py bitflip [port]` - flip random bytes in a packet and send the
+  corrupted copy to the port (the ground station then detects it as a CRC failure)
+
+Default port is 5000. Uses only the Python standard library.
