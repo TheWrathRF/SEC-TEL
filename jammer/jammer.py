@@ -57,6 +57,17 @@ def bitflip(port):
         time.sleep(0.2)
 
 
+def noise(port):
+    # flood the target port with completely random garbage bytes
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    print("flooding port %d with noise ..." % port)
+    while True:
+        n = random.randint(20, 80)
+        junk = bytes(random.getrandbits(8) for _ in range(n))
+        s.sendto(junk, (TARGET_HOST, port))
+        time.sleep(0.1)
+
+
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "sniff"
     port = int(sys.argv[2]) if len(sys.argv) > 2 else DEFAULT_PORT
@@ -64,5 +75,7 @@ if __name__ == "__main__":
         sniff(port)
     elif mode == "bitflip":
         bitflip(port)
+    elif mode == "noise":
+        noise(port)
     else:
-        print("usage: jammer.py [sniff|bitflip] [port]")
+        print("usage: jammer.py [sniff|bitflip|noise] [port]")
