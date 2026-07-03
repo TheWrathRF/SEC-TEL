@@ -1,0 +1,132 @@
+{
+  "uid": "sectel",
+  "title": "SEC-TEL",
+  "tags": ["sectel"],
+  "style": "dark",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "5s",
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Altitude (m)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "sectelpg" },
+      "fieldConfig": {
+        "defaults": { "unit": "lengthm", "custom": { "drawStyle": "line", "fillOpacity": 12, "lineWidth": 2 } },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "sectelpg" },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT received_at AS \"time\", altitude FROM clean_telemetry WHERE $__timeFilter(received_at) ORDER BY received_at"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Speed (m/s)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "sectelpg" },
+      "fieldConfig": {
+        "defaults": { "unit": "velocityms", "custom": { "drawStyle": "line", "fillOpacity": 12, "lineWidth": 2 } },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "sectelpg" },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT received_at AS \"time\", speed FROM clean_telemetry WHERE $__timeFilter(received_at) ORDER BY received_at"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "gauge",
+      "title": "Battery (%)",
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 8 },
+      "datasource": { "type": "postgres", "uid": "sectelpg" },
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 100,
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 20 },
+              { "color": "green", "value": 50 }
+            ]
+          }
+        }
+      },
+      "options": { "showThresholdMarkers": true, "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "sectelpg" },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT battery FROM clean_telemetry ORDER BY received_at DESC LIMIT 1"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Electronic Warfare Status",
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 8 },
+      "datasource": { "type": "postgres", "uid": "sectelpg" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          },
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "LINK SECURE", "index": 0 } } },
+            { "type": "range", "options": { "from": 1, "to": 1000000, "result": { "text": "JAMMING DETECTED - DATA CORRUPTED", "index": 1 } } }
+          ]
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "sectelpg" },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT count(*) AS value FROM attack_logs WHERE received_at > now() - interval '1 minute'"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "table",
+      "title": "Attack Log",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": { "type": "postgres", "uid": "sectelpg" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "sectelpg" },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT received_at, source_addr, source_port, packet_size, reason FROM attack_logs ORDER BY received_at DESC LIMIT 20"
+        }
+      ]
+    }
+  ]
+}

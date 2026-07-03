@@ -78,3 +78,19 @@ lands when a hop happens to coincide with it.
 Default port is 5000. Uses only the Python standard library. It runs continuously and
 shuts down cleanly on Ctrl-C (printing how many packets it sent); background it with
 `pythonw` or `start /b`.
+
+## Dashboard (Grafana)
+
+Grafana visualizes the data straight from PostgreSQL. It runs on http://localhost:3000
+(default login admin / admin). Files in `grafana/`:
+
+- `datasource.yaml` - provisions the `sectel_db` PostgreSQL data source
+- `sectel-dashboard.json` - the SEC-TEL dashboard
+
+To set it up, copy `datasource.yaml` into Grafana's `conf/provisioning/datasources/`
+folder and restart Grafana, then import `sectel-dashboard.json` from the dashboards
+page (both reference the data source by the fixed uid `sectelpg`).
+
+The dashboard (dark theme, auto-refresh) shows real-time Altitude and Speed graphs and a
+Battery gauge from `clean_telemetry`, plus an Electronic Warfare panel that turns red with
+"JAMMING DETECTED - DATA CORRUPTED" and an attack log table from `attack_logs`.
