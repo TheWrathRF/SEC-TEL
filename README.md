@@ -52,7 +52,9 @@ psql -U postgres -d sectel_db -f db/schema.sql
 Follows the same port-hopping schedule as the sender and receives the UAV packets.
 Each packet's CRC-32 is checked: valid packets are decrypted (AES-128) and stored in
 `clean_telemetry`, while corrupted or jammed packets are recorded in `attack_logs`.
-Uses plain JDBC; the driver jar is in `ground-station/lib`.
+Uses plain JDBC; the driver jar is in `ground-station/lib`. Inserts run on a worker
+thread pool backed by a small connection pool, so bursts of traffic don't stall the
+receive loop.
 
 ### Build & run
 
@@ -73,4 +75,6 @@ lands when a hop happens to coincide with it.
   corrupted copy to the port (the ground station then detects it as a CRC failure)
 - `python jammer.py noise [port]` - flood the port with completely random garbage bytes
 
-Default port is 5000. Uses only the Python standard library.
+Default port is 5000. Uses only the Python standard library. It runs continuously and
+shuts down cleanly on Ctrl-C (printing how many packets it sent); background it with
+`pythonw` or `start /b`.
