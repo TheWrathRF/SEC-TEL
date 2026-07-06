@@ -8,6 +8,9 @@ station receives, validates, decrypts and stores the data in PostgreSQL. A Pytho
 module simulates a jammer that attempts to corrupt the data link, and Grafana
 visualizes the live telemetry and any detected attacks.
 
+See [docs/architecture.md](docs/architecture.md) for the system architecture and
+[docs/demo.md](docs/demo.md) for how to run everything.
+
 ## uav-sim (C)
 
 Generates flight telemetry - timestamp, latitude, longitude, altitude, speed and

@@ -49,7 +49,12 @@ public class Main {
                 continue;
             }
 
-            handlePacket(pkt);
+            try {
+                handlePacket(pkt);
+            } catch (Exception e) {
+                // a malformed packet shouldn't take the whole station down
+                System.out.println("dropped a bad packet: " + e.getMessage());
+            }
         }
     }
 
